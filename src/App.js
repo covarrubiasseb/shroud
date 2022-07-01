@@ -1,35 +1,175 @@
 import logo from './logo.svg';
 import './App.css';
 import React from 'react';
+import { initializeApp } from 'firebase/app'; 
+import {
+  getAuth,
+  onAuthStateChanged,
+  GoogleAuthProvider,
+  signInWithRedirect,
+  signOut
+} from 'firebase/auth';
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  query,
+  setDoc,
+  updateDoc,
+  serverTimestamp
+} from 'firebase/firestore';
+import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getFirebaseConfig } from './firebase-config.js';
 
 class App extends React.Component {
   constructor(props) {
     super(props);
+
+    this.state = {
+      userNameValue: '',
+      messageFormValue: '',
+      userNameElement: '',
+      signOutButtonElement: '',
+      signInButtonElement: '',
+      submitButtonElement: ''
+    }
+
+    this.initFirebaseAuth = this.initFirebaseAuth.bind(this);
+    this.getUserName = this.getUserName.bind(this);
+    this.signIn = this.signIn.bind(this);
+    this.signOutUser = this.signOutUser.bind(this);
+    this.isUserSignedIn = this.isUserSignedIn.bind(this);
+    this.authStateObserver = this.authStateObserver.bind(this);
+    this.checkSignedInWithMessage = this.checkSignedInWithMessage.bind(this);
+    this.handleChange = this.handleChange.bind(this);
+    this.onMessageFormSubmit = this.onMessageFormSubmit.bind(this);
+    this.saveMessage = this.saveMessage.bind(this);
+    this.toggleButton = this.toggleButton.bind(this);
+  }
+
+  initFirebaseAuth() {
+    onAuthStateChanged(getAuth(), this.authStateObserver);
+  }
+
+  getUserName() {
+    return getAuth().currentUser.displayName;
+  }
+
+  async signIn() {
+    let provider = new GoogleAuthProvider();
+    await signInWithRedirect(getAuth(), provider);
+  }
+
+  signOutUser() {
+    signOut(getAuth());
+  }
+
+  isUserSignedIn() {
+    return !!getAuth().currentUser;
+  }
+
+  authStateObserver(user) {
+    if (user) {
+      // User is Signed In
+      let userName = this.getUserName();
+
+      this.setState({userNameValue: userName});
+
+      this.state.userNameElement.removeAttribute('hidden');   
+      this.state.signOutButtonElement.removeAttribute('hidden');     
+      this.state.signInButtonElement.setAttribute('hidden', 'true');
+      
+    } else {
+      this.state.userNameElement.setAttribute('hidden', 'true');      
+      this.state.signOutButtonElement.setAttribute('hidden', 'true');     
+      this.state.signInButtonElement.removeAttribute('hidden');     
+    }
+  }
+
+  // Returns true if user is signed in. Otherwise false and displays a message
+  checkSignedInWithMessage() {
+    if (this.isUserSignedIn()) {
+      return true;
+    }
+
+    alert('Sign in to send messages');
+    return false;
+  }
+
+  handleChange(e) {
+    this.setState({messageFormValue: e.target.value});
+    this.toggleButton();
+  }
+
+  // Message Submit Handler
+  onMessageFormSubmit(e) {
+    e.preventDefault();
+    // Check that user entered a message and is signed in
+    if (this.state.messageFormValue && this.checkSignedInWithMessage()) {
+      this.saveMessage(this.state.messageFormValue).then(() => {
+      //  Clear message text field and re-enable the Send button
+      this.setState({messageFormValue: ''});
+      this.toggleButton();
+      });
+    }
+  }
+
+  // Sends a message to the Firestore Database
+  async saveMessage(messageText) {
+    try {
+      await addDoc(collection(getFirestore(), 'messages'), {
+        name: this.getUserName(),
+        text: messageText,
+        timestamp: serverTimestamp()
+      });
+    } catch (error) {
+      console.error('Error writing new message to Firebase Database', error);
+    }
+  }
+
+  toggleButton() {
+    if (this.state.messageFormValue) {
+      this.state.submitButtonElement.removeAttribute('disabled');
+    } else {
+      this.state.submitButtonElement.setAttribute('disabled', 'true');
+    }
   }
 
   componentDidMount() {
-    // API Request here
+    this.setState({
+      userNameElement: document.getElementById('user-name'),
+      signInButtonElement: document.getElementById('sign-in'),
+      signOutButtonElement: document.getElementById('sign-out'),
+      submitButtonElement: document.getElementById('submit')
+    });
+
+    // Init Firebase
+    const firebaseApp = initializeApp(getFirebaseConfig());
+    const messaging = getMessaging(firebaseApp);
+    this.initFirebaseAuth();
   }
 
   render() {
 
     return (
 
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
+      <div className='App'>
+        <header className='App-header'>
+          <img src={logo} className='App-logo' alt='logo' />
+          <div hidden id="user-name">{this.state.userNameValue}</div>
+          <button hidden id='sign-out' onClick={this.signOutUser}>Sign Out</button>
+          <button id='sign-in' onClick={this.signIn}>Sign In with Google</button>
         </header>
+
+        <main id='messages-container'>
+          <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
+            <div>
+              <label><i>Type message here...</i></label>
+              <input type='text' id='message' autoComplete='off' value={this.state.messageFormValue} onChange={this.handleChange}/>
+              <button id='submit' disabled type='submit'>Send</button>
+            </div>
+          </form>
+        </main>
       </div>
 
     );
