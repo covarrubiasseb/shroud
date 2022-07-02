@@ -1,14 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('User can Login with Google using Firebase Auth', () => {
-  render(<App />);
-});
-
-test('User can Logout with Google using Firebase Auth', () => {
-  render(<App />);
-});
-
 test('User can visit a unique server (GET /servers/:id/channel/0)', () => {
   render(<App />);
 });

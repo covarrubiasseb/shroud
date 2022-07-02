@@ -147,8 +147,8 @@ class App extends React.Component {
   }
 
   loadMessages() {
-    const recentMessagesQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'asc'));
-    onSnapshot(recentMessagesQuery, snapshot => {
+    const messagesQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'asc'));
+    onSnapshot(messagesQuery, snapshot => {
 
       snapshot.docChanges().forEach((change, idx) => {
         if (change.type === 'removed') {
