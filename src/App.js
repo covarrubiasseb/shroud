@@ -14,8 +14,11 @@ import {
   collection,
   addDoc,
   query,
+  orderBy,
+  onSnapshot,
   setDoc,
   updateDoc,
+  doc,
   serverTimestamp
 } from 'firebase/firestore';
 import { getMessaging, getToken, onMessage } from 'firebase/messaging';
@@ -31,7 +34,8 @@ class App extends React.Component {
       userNameElement: '',
       signOutButtonElement: '',
       signInButtonElement: '',
-      submitButtonElement: ''
+      submitButtonElement: '',
+      messages: []
     }
 
     this.initFirebaseAuth = this.initFirebaseAuth.bind(this);
@@ -44,6 +48,9 @@ class App extends React.Component {
     this.handleChange = this.handleChange.bind(this);
     this.onMessageFormSubmit = this.onMessageFormSubmit.bind(this);
     this.saveMessage = this.saveMessage.bind(this);
+    this.displayMessage = this.displayMessage.bind(this);
+    this.loadMessages = this.loadMessages.bind(this);
+    this.deleteMessage = this.deleteMessage.bind(this);
     this.toggleButton = this.toggleButton.bind(this);
   }
 
@@ -127,6 +134,35 @@ class App extends React.Component {
     }
   }
 
+  displayMessage(id, timestamp, name, text) {
+    // TODO: Update state with new message
+    let newState = Object.assign({}, this.state);
+    let messages = newState.messages;
+    messages.push({text:text});
+    this.setState({
+      messages: messages
+    });
+  }
+
+  loadMessages() {
+    const recentMessagesQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'desc'));
+    
+    onSnapshot(recentMessagesQuery, snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'removed') {
+          this.deleteMessage(change.doc.id);
+        } else {
+          let message = change.doc.data();
+          this.displayMessage(change.doc.id, message.timestamp, message.name, message.text);
+        }
+      });
+    });
+  }
+
+  deleteMessage(id) {
+    // TODO: delete message in state
+  }
+
   toggleButton() {
     if (this.state.messageFormValue) {
       this.state.submitButtonElement.removeAttribute('disabled');
@@ -147,6 +183,7 @@ class App extends React.Component {
     const firebaseApp = initializeApp(getFirebaseConfig());
     const messaging = getMessaging(firebaseApp);
     this.initFirebaseAuth();
+    this.loadMessages();
   }
 
   render() {
@@ -162,6 +199,17 @@ class App extends React.Component {
         </header>
 
         <main id='messages-container'>
+          <ul>
+            {
+              this.state.messages.map((message, idx) => {
+                console.log(message.text);
+                return (
+                  <li key={idx+1}>{message.text}</li>
+                );
+              })
+            }
+          </ul>
+
           <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
             <div>
               <label><i>Type message here...</i></label>
