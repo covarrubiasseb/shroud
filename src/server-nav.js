@@ -1,5 +1,3 @@
-import React from 'react';
-
 // Generate dummy servers for now and place their ids here
 
 const ServerNav = () => {

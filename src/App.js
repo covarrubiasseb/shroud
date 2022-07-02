@@ -20,6 +20,7 @@ import {
 } from 'firebase/firestore';
 import { getFirebaseConfig } from './firebase-config.js';
 import ServerNav from './server-nav.js';
+import ChannelNav from './channel-nav.js';
 
 class App extends React.Component {
   constructor(props) {
@@ -220,31 +221,37 @@ class App extends React.Component {
             <button id='sign-in' onClick={this.signIn}>Sign In with Google</button>
           </header>
 
-          <main id='messages-container'>
-            <ul>
-              {
-                this.state.messages.map((message, idx) => {
-                  return (
-                    <li key={idx+1}>
-                      <div>userName: {message.userName}</div>
-                      <div>messageText: {message.text}</div>
-                      <div>{message.timestamp ? message.timestamp.toDate().toString() : ''}</div>
-                    </li>
-                  );
-                })
-              }
-            </ul>
+          <div id='server-container'> 
+            <div className='channel-nav'>
+              <ChannelNav />
+            </div>
 
-            <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
-              <div>
-                <label><i>Type message here...</i></label>
-                <input type='text' id='message' autoComplete='off' value={this.state.messageFormValue} onChange={this.handleChange}/>
-                <button id='submit' disabled type='submit'>Send</button>
-              </div>
-            </form>
+            <main id='messages-container'>
+              <ul>
+                {
+                  this.state.messages.map((message, idx) => {
+                    return (
+                      <li key={idx+1}>
+                        <div>userName: {message.userName}</div>
+                        <div>messageText: {message.text}</div>
+                        <div>{message.timestamp ? message.timestamp.toDate().toString() : ''}</div>
+                      </li>
+                    );
+                  })
+                }
+              </ul>
 
-          </main>
-          
+              <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
+                <div>
+                  <label><i>Type message here...</i></label>
+                  <input type='text' id='message' autoComplete='off' value={this.state.messageFormValue} onChange={this.handleChange}/>
+                  <button id='submit' disabled type='submit'>Send</button>
+                </div>
+              </form>
+            </main>
+            
+          </div>
+
         </div>
 
       </div>
