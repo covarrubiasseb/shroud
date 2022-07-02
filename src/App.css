@@ -25,6 +25,10 @@
   flex: 1;
 }
 
+ul {
+  list-style: none;
+}
+
 li {
   border-style: solid;
   border-width: 1px;

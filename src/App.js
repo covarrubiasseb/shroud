@@ -35,7 +35,9 @@ class App extends React.Component {
       submitButtonElement: '',
       messages: [],
       serverId: 'u4feFsbX4TwzXkUaw1ku',
-      channel: 0
+      channel: 0,
+      requestNewSnapshot: false,
+      unsubscribe: null
     }
 
     this.initFirebaseAuth = this.initFirebaseAuth.bind(this);
@@ -44,6 +46,7 @@ class App extends React.Component {
     this.signOutUser = this.signOutUser.bind(this);
     this.isUserSignedIn = this.isUserSignedIn.bind(this);
     this.authStateObserver = this.authStateObserver.bind(this);
+    this.serverNavHandler = this.serverNavHandler.bind(this);
     this.checkSignedInWithMessage = this.checkSignedInWithMessage.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.onMessageFormSubmit = this.onMessageFormSubmit.bind(this);
@@ -93,6 +96,15 @@ class App extends React.Component {
     }
   }
 
+  serverNavHandler(e) {
+    e.preventDefault();
+
+    this.setState({
+      serverId: e.target.dataset.id,
+      channel: 0
+    });
+  }
+
   // Returns true if user is signed in. Otherwise false and displays a message
   checkSignedInWithMessage() {
     if (this.isUserSignedIn()) {
@@ -104,6 +116,8 @@ class App extends React.Component {
   }
 
   handleChange(e) {
+    e.preventDefault();
+
     this.setState({messageFormValue: e.target.value});
     this.toggleButton();
   }
@@ -162,20 +176,43 @@ class App extends React.Component {
       messages: []
     });
 
-    const messagesQuery = query(collection(getFirestore(), 'messages'), where('channel', '==', this.state.channel), 
-                                                                        where('serverId', '==', this.state.serverId));
+    const messagesQuery = query(collection(getFirestore(), 'messages'), where('channel', '==', channelIndex), 
+                                                                        where('serverId', '==', serverId));
+    // Ensure there is only one snapshot subscriber at a time, for the server the user is currently on
+    if (!this.state.unsubscribe) {
+      this.setState({
 
-    onSnapshot(messagesQuery, snapshot => {
-      snapshot.docChanges().forEach((change, idx) => {
-        if (change.type === 'removed') {
-          this.deleteMessage(change.doc.id);
-        } else {
-          let message = change.doc.data();
-          this.displayMessage(change.doc.id, message.timestamp, message.name, message.text);
-        }
+        unsubscribe:onSnapshot(messagesQuery, snapshot => {
+                      snapshot.docChanges().forEach((change, idx) => {
+                        if (change.type === 'removed') {
+                          this.deleteMessage(change.doc.id);
+                        } else {
+                          let message = change.doc.data();
+                          this.displayMessage(change.doc.id, message.timestamp, message.name, message.text);
+                        }
+                      });
+                    })
+
+      });
+    } else {
+      this.state.unsubscribe();
+
+      this.setState({
+
+        unsubscribe:onSnapshot(messagesQuery, snapshot => {
+                      snapshot.docChanges().forEach((change, idx) => {
+                        if (change.type === 'removed') {
+                          this.deleteMessage(change.doc.id);
+                        } else {
+                          let message = change.doc.data();
+                          this.displayMessage(change.doc.id, message.timestamp, message.name, message.text);
+                        }
+                      });
+                    })
+
       });
 
-    });
+    }
   }
 
   deleteMessage(id) {
@@ -204,13 +241,37 @@ class App extends React.Component {
     this.loadMessages(this.state.serverId, this.state.channel);
   }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (prevState.serverId !== this.state.serverId) {
+      this.loadMessages(this.state.serverId, 0);
+    }
+  }
+
   render() {
+    const servers = [
+
+      'u4feFsbX4TwzXkUaw1ku',
+      'qbDxVfOVtElB05NwEq78',
+      'bIcSyiKgccowEdxu0bCm',
+      'MdV2IYSN5guw53vZR4dV'
+
+    ];
+
+    const channels = [
+
+      {name: 'main'},
+      {name: '1'},
+      {name: '2'},
+      {name: '3'},
+      {name: '4'},
+
+    ];
 
     return (
 
       <div className='App'>
         <div className='server-nav'>
-          <ServerNav />
+          <ServerNav serverList={servers} serverNavHandler={this.serverNavHandler} />
         </div>
 
         <div id='main-container'>
@@ -223,7 +284,7 @@ class App extends React.Component {
 
           <div id='server-container'> 
             <div className='channel-nav'>
-              <ChannelNav />
+              <ChannelNav channelList={channels} />
             </div>
 
             <main id='messages-container'>
@@ -249,7 +310,7 @@ class App extends React.Component {
                 </div>
               </form>
             </main>
-            
+
           </div>
 
         </div>

@@ -1,18 +1,13 @@
-// Generate dummy channels for now and use them here as an array
-
-const ChannelNav = () => {
+const ChannelNav = (props) => {
   return (
     <ul>
-      <li>Channel 0</li>
-      <li>Channel 1</li>
-      <li>Channel 2</li>
-      <li>Channel 3</li>
-      <li>Channel 4</li>
-      <li>Channel 5</li>
-      <li>Channel 6</li>
-      <li>Channel 7</li>
-      <li>Channel 8</li>
-      <li>Channel 9</li>
+      {
+        props.channelList.map((channel, idx) => {
+          return (
+            <li key={idx+1}>{channel.name}</li>
+          );
+        })
+      }
     </ul>
   );
 }

@@ -1,12 +1,13 @@
-// Generate dummy servers for now and place their ids here
-
-const ServerNav = () => {
+const ServerNav = (props) => {
   return (
     <ul>
-      <li>Server 1</li>
-      <li>Server 2</li>
-      <li>Server 3</li>
-      <li>Server 4</li>
+      {
+        props.serverList.map((serverId,idx) => {
+          return (
+            <li key={idx+1}><button onClick={props.serverNavHandler} data-id={serverId}>Server {idx+1}</button></li>
+          );
+        })
+      }
     </ul>
   );
 }
