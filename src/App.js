@@ -16,12 +16,8 @@ import {
   query,
   orderBy,
   onSnapshot,
-  setDoc,
-  updateDoc,
-  doc,
   serverTimestamp
 } from 'firebase/firestore';
-import { getMessaging } from 'firebase/messaging';
 import { getFirebaseConfig } from './firebase-config.js';
 
 class App extends React.Component {
@@ -151,7 +147,7 @@ class App extends React.Component {
   }
 
   loadMessages() {
-    const recentMessagesQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'desc'));
+    const recentMessagesQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'asc'));
     onSnapshot(recentMessagesQuery, snapshot => {
 
       snapshot.docChanges().forEach((change, idx) => {
@@ -187,8 +183,7 @@ class App extends React.Component {
     });
 
     // Init Firebase
-    const firebaseApp = initializeApp(getFirebaseConfig());
-    const messaging = getMessaging(firebaseApp);
+    initializeApp(getFirebaseConfig());
     this.initFirebaseAuth();
     this.loadMessages();
   }
