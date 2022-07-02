@@ -144,7 +144,11 @@ class App extends React.Component {
   displayMessage(id, timestamp, name, text) {
     // TODO: Update state with new message
     let messages = this.state.messages;
-    messages.push({text:text});
+    messages.push({
+      userName: name,
+      text: text,
+      timestamp: timestamp
+    });
     this.setState({
       messages: messages
     });
@@ -215,7 +219,11 @@ class App extends React.Component {
             {
               this.state.messages.map((message, idx) => {
                 return (
-                  <li key={idx+1}>{message.text}</li>
+                  <li key={idx+1}>
+                    <div>userName: {message.userName}</div>
+                    <div>messageText: {message.text}</div>
+                    <div>{message.timestamp ? message.timestamp.toDate().toString() : ''}</div>
+                  </li>
                 );
               })
             }
