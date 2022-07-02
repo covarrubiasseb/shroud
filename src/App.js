@@ -14,7 +14,7 @@ import {
   collection,
   addDoc,
   query,
-  orderBy,
+  where,
   onSnapshot,
   serverTimestamp
 } from 'firebase/firestore';
@@ -31,7 +31,9 @@ class App extends React.Component {
       signOutButtonElement: '',
       signInButtonElement: '',
       submitButtonElement: '',
-      messages: []
+      messages: [],
+      serverId: 'u4feFsbX4TwzXkUaw1ku',
+      channel: 0
     }
 
     this.initFirebaseAuth = this.initFirebaseAuth.bind(this);
@@ -109,7 +111,7 @@ class App extends React.Component {
     e.preventDefault();
     // Check that user entered a message and is signed in
     if (this.state.messageFormValue && this.checkSignedInWithMessage()) {
-      this.saveMessage(this.state.messageFormValue).then(() => {
+      this.saveMessage(this.state.messageFormValue, this.state.serverId, this.state.channel).then(() => {
         //  Clear message text field and re-enable the Send button
         this.setState({messageFormValue: ''});
         this.toggleButton();
@@ -125,12 +127,14 @@ class App extends React.Component {
   }
 
   // Sends a message to the Firestore Database
-  async saveMessage(messageText) {
+  async saveMessage(messageText, serverId, channelIndex) {
     try {
       await addDoc(collection(getFirestore(), 'messages'), {
         name: this.getUserName(),
         text: messageText,
-        timestamp: serverTimestamp()
+        timestamp: serverTimestamp(),
+        serverId: serverId,
+        channel: channelIndex
       });
     } catch (error) {
       console.error('Error writing new message to Firebase Database', error);
@@ -146,10 +150,16 @@ class App extends React.Component {
     });
   }
 
-  loadMessages() {
-    const messagesQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'asc'));
-    onSnapshot(messagesQuery, snapshot => {
+  loadMessages(serverId, channelIndex) {
 
+    this.setState({
+      messages: []
+    });
+
+    const messagesQuery = query(collection(getFirestore(), 'messages'), where('channel', '==', this.state.channel), 
+                                                                        where('serverId', '==', this.state.serverId));
+
+    onSnapshot(messagesQuery, snapshot => {
       snapshot.docChanges().forEach((change, idx) => {
         if (change.type === 'removed') {
           this.deleteMessage(change.doc.id);
@@ -185,7 +195,7 @@ class App extends React.Component {
     // Init Firebase
     initializeApp(getFirebaseConfig());
     this.initFirebaseAuth();
-    this.loadMessages();
+    this.loadMessages(this.state.serverId, this.state.channel);
   }
 
   render() {
