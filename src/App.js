@@ -19,6 +19,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { getFirebaseConfig } from './firebase-config.js';
+import ServerNav from './server-nav.js';
 
 class App extends React.Component {
   constructor(props) {
@@ -207,36 +208,45 @@ class App extends React.Component {
     return (
 
       <div className='App'>
-        <header className='App-header'>
-          <img src={logo} className='App-logo' alt='logo' />
-          <div hidden id="user-name">{this.state.userNameValue}</div>
-          <button hidden id='sign-out' onClick={this.signOutUser}>Sign Out</button>
-          <button id='sign-in' onClick={this.signIn}>Sign In with Google</button>
-        </header>
+        <div className='server-nav'>
+          <ServerNav />
+        </div>
 
-        <main id='messages-container'>
-          <ul>
-            {
-              this.state.messages.map((message, idx) => {
-                return (
-                  <li key={idx+1}>
-                    <div>userName: {message.userName}</div>
-                    <div>messageText: {message.text}</div>
-                    <div>{message.timestamp ? message.timestamp.toDate().toString() : ''}</div>
-                  </li>
-                );
-              })
-            }
-          </ul>
+        <div id='main-container'>
+          <header className='App-header'>
+            <img src={logo} className='App-logo' alt='logo' />
+            <div hidden id="user-name">{this.state.userNameValue}</div>
+            <button hidden id='sign-out' onClick={this.signOutUser}>Sign Out</button>
+            <button id='sign-in' onClick={this.signIn}>Sign In with Google</button>
+          </header>
 
-          <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
-            <div>
-              <label><i>Type message here...</i></label>
-              <input type='text' id='message' autoComplete='off' value={this.state.messageFormValue} onChange={this.handleChange}/>
-              <button id='submit' disabled type='submit'>Send</button>
-            </div>
-          </form>
-        </main>
+          <main id='messages-container'>
+            <ul>
+              {
+                this.state.messages.map((message, idx) => {
+                  return (
+                    <li key={idx+1}>
+                      <div>userName: {message.userName}</div>
+                      <div>messageText: {message.text}</div>
+                      <div>{message.timestamp ? message.timestamp.toDate().toString() : ''}</div>
+                    </li>
+                  );
+                })
+              }
+            </ul>
+
+            <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
+              <div>
+                <label><i>Type message here...</i></label>
+                <input type='text' id='message' autoComplete='off' value={this.state.messageFormValue} onChange={this.handleChange}/>
+                <button id='submit' disabled type='submit'>Send</button>
+              </div>
+            </form>
+
+          </main>
+          
+        </div>
+
       </div>
 
     );

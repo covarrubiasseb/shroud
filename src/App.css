@@ -1,10 +1,20 @@
 .App {
-  text-align: center;
+  display: flex;
+  flex-direction: row;
 }
 
 .App-logo {
   height: 5vmin;
   pointer-events: none;
+}
+
+.server-nav {
+  margin-right: 5px;
+}
+
+#main-container {
+  flex: 1;
+  margin-right: 5px;
 }
 
 li {
