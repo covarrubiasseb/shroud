@@ -21,7 +21,7 @@ import {
   doc,
   serverTimestamp
 } from 'firebase/firestore';
-import { getMessaging, getToken, onMessage } from 'firebase/messaging';
+import { getMessaging } from 'firebase/messaging';
 import { getFirebaseConfig } from './firebase-config.js';
 
 class App extends React.Component {
@@ -114,9 +114,16 @@ class App extends React.Component {
     // Check that user entered a message and is signed in
     if (this.state.messageFormValue && this.checkSignedInWithMessage()) {
       this.saveMessage(this.state.messageFormValue).then(() => {
-      //  Clear message text field and re-enable the Send button
-      this.setState({messageFormValue: ''});
-      this.toggleButton();
+        //  Clear message text field and re-enable the Send button
+        this.setState({messageFormValue: ''});
+        this.toggleButton();
+
+        // Remove Duplicate Message
+        let messages = this.state.messages;
+        messages.pop();
+        this.setState({
+          messages: messages
+        });
       });
     }
   }
@@ -136,8 +143,7 @@ class App extends React.Component {
 
   displayMessage(id, timestamp, name, text) {
     // TODO: Update state with new message
-    let newState = Object.assign({}, this.state);
-    let messages = newState.messages;
+    let messages = this.state.messages;
     messages.push({text:text});
     this.setState({
       messages: messages
@@ -146,9 +152,9 @@ class App extends React.Component {
 
   loadMessages() {
     const recentMessagesQuery = query(collection(getFirestore(), 'messages'), orderBy('timestamp', 'desc'));
-    
     onSnapshot(recentMessagesQuery, snapshot => {
-      snapshot.docChanges().forEach(change => {
+
+      snapshot.docChanges().forEach((change, idx) => {
         if (change.type === 'removed') {
           this.deleteMessage(change.doc.id);
         } else {
@@ -156,6 +162,7 @@ class App extends React.Component {
           this.displayMessage(change.doc.id, message.timestamp, message.name, message.text);
         }
       });
+
     });
   }
 
@@ -202,7 +209,6 @@ class App extends React.Component {
           <ul>
             {
               this.state.messages.map((message, idx) => {
-                console.log(message.text);
                 return (
                   <li key={idx+1}>{message.text}</li>
                 );
