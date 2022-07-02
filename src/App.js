@@ -47,6 +47,7 @@ class App extends React.Component {
     this.isUserSignedIn = this.isUserSignedIn.bind(this);
     this.authStateObserver = this.authStateObserver.bind(this);
     this.serverNavHandler = this.serverNavHandler.bind(this);
+    this.channelNavHandler = this.channelNavHandler.bind(this);
     this.checkSignedInWithMessage = this.checkSignedInWithMessage.bind(this);
     this.handleChange = this.handleChange.bind(this);
     this.onMessageFormSubmit = this.onMessageFormSubmit.bind(this);
@@ -102,6 +103,14 @@ class App extends React.Component {
     this.setState({
       serverId: e.target.dataset.id,
       channel: 0
+    });
+  }
+
+  channelNavHandler(e) {
+    e.preventDefault();
+
+    this.setState({
+      channel: e.target.dataset.channel
     });
   }
 
@@ -245,6 +254,10 @@ class App extends React.Component {
     if (prevState.serverId !== this.state.serverId) {
       this.loadMessages(this.state.serverId, 0);
     }
+
+    if (prevState.channel !== this.state.channel) {
+      this.loadMessages(this.state.serverId, this.state.channel);
+    }
   }
 
   render() {
@@ -284,7 +297,7 @@ class App extends React.Component {
 
           <div id='server-container'> 
             <div className='channel-nav'>
-              <ChannelNav channelList={channels} />
+              <ChannelNav channelList={channels} channelNavHandler={this.channelNavHandler} />
             </div>
 
             <main id='messages-container'>
