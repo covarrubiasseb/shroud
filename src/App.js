@@ -34,10 +34,12 @@ class App extends React.Component {
       signInButtonElement: '',
       submitButtonElement: '',
       messages: [],
-      serverId: 'u4feFsbX4TwzXkUaw1ku',
+      serverId: '',
+      serverIndex: '',
       channel: 0,
       requestNewSnapshot: false,
-      unsubscribe: null
+      unsubscribe: null,
+      servers: []
     }
 
     this.initFirebaseAuth = this.initFirebaseAuth.bind(this);
@@ -99,10 +101,10 @@ class App extends React.Component {
 
   serverNavHandler(e) {
     e.preventDefault();
-
     this.setState({
       serverId: e.target.dataset.id,
-      channel: 0
+      channel: 0,
+      serverIndex: e.target.dataset.index
     });
   }
 
@@ -209,7 +211,7 @@ class App extends React.Component {
       this.setState({
 
         unsubscribe:onSnapshot(messagesQuery, snapshot => {
-                      snapshot.docChanges().forEach((change, idx) => {
+                      snapshot.docChanges().forEach(change => {
                         if (change.type === 'removed') {
                           this.deleteMessage(change.doc.id);
                         } else {
@@ -247,7 +249,23 @@ class App extends React.Component {
     // Init Firebase
     initializeApp(getFirebaseConfig());
     this.initFirebaseAuth();
-    this.loadMessages(this.state.serverId, this.state.channel);
+
+    // Find available servers to join
+    const serversQuery = query(collection(getFirestore(), 'servers'));
+    
+    onSnapshot(serversQuery, snapshot => {
+      snapshot.docChanges().forEach(change => {
+        let serverId = change.doc._key.path.segments[6];
+        let servers = this.state.servers;
+        servers.push({
+          serverId,
+          channels: change.doc.data().channel
+        });
+        this.setState({
+          servers: servers
+        });
+      });
+    });
   }
 
   componentDidUpdate(prevProps, prevState) {
@@ -261,30 +279,12 @@ class App extends React.Component {
   }
 
   render() {
-    const servers = [
-
-      'u4feFsbX4TwzXkUaw1ku',
-      'qbDxVfOVtElB05NwEq78',
-      'bIcSyiKgccowEdxu0bCm',
-      'MdV2IYSN5guw53vZR4dV'
-
-    ];
-
-    const channels = [
-
-      {name: 'main'},
-      {name: '1'},
-      {name: '2'},
-      {name: '3'},
-      {name: '4'},
-
-    ];
 
     return (
 
       <div className='App'>
         <div className='server-nav'>
-          <ServerNav serverList={servers} serverNavHandler={this.serverNavHandler} />
+          <ServerNav serverList={this.state.servers} serverNavHandler={this.serverNavHandler} />
         </div>
 
         <div id='main-container'>
@@ -297,7 +297,8 @@ class App extends React.Component {
 
           <div id='server-container'> 
             <div className='channel-nav'>
-              <ChannelNav channelList={channels} channelNavHandler={this.channelNavHandler} />
+              <ChannelNav channelList={this.state.servers[this.state.serverIndex] ? this.state.servers[this.state.serverIndex].channels : []} 
+                          channelNavHandler={this.channelNavHandler} />
             </div>
 
             <main id='messages-container'>

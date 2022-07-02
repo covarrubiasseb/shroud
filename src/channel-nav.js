@@ -4,7 +4,7 @@ const ChannelNav = (props) => {
       {
         props.channelList.map((channel, idx) => {
           return (
-            <li key={idx+1}><button onClick={props.channelNavHandler} data-channel={idx}>{channel.name}</button></li>
+            <li key={idx+1}><button onClick={props.channelNavHandler} data-channel={idx}>{channel}</button></li>
           );
         })
       }
