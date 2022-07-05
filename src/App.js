@@ -284,7 +284,7 @@ class App extends React.Component {
 
       <div className='App'>
         <div className='server-nav'>
-          <ServerNav serverList={this.state.servers} serverNavHandler={this.serverNavHandler} />
+          <ServerNav serverList={this.state.servers} serverNavHandler={this.serverNavHandler}/>
         </div>
 
         <div id='main-container'>
