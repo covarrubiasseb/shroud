@@ -284,7 +284,7 @@ class App extends React.Component {
 
     if (!this.state.submitButtonElement && this.state.serverId) {
       this.setState({
-        submitButtonElement: document.getElementById('submit') || ''
+        submitButtonElement: document.getElementById('submit')
       });
     }
 
