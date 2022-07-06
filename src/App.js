@@ -43,6 +43,7 @@ class App extends React.Component {
     }
 
     this.initFirebaseAuth = this.initFirebaseAuth.bind(this);
+    this.getUserId = this.getUserId.bind(this);
     this.getUserName = this.getUserName.bind(this);
     this.signIn = this.signIn.bind(this);
     this.signOutUser = this.signOutUser.bind(this);
@@ -51,8 +52,9 @@ class App extends React.Component {
     this.serverNavHandler = this.serverNavHandler.bind(this);
     this.channelNavHandler = this.channelNavHandler.bind(this);
     this.checkSignedInWithMessage = this.checkSignedInWithMessage.bind(this);
-    this.handleChange = this.handleChange.bind(this);
+    this.handleMessageChange = this.handleMessageChange.bind(this);
     this.onMessageFormSubmit = this.onMessageFormSubmit.bind(this);
+    this.onMessageDelete = this.onMessageDelete.bind(this);
     this.saveMessage = this.saveMessage.bind(this);
     this.displayMessage = this.displayMessage.bind(this);
     this.loadMessages = this.loadMessages.bind(this);
@@ -62,6 +64,9 @@ class App extends React.Component {
 
   initFirebaseAuth() {
     onAuthStateChanged(getAuth(), this.authStateObserver);
+  }
+
+  getUserId() {
   }
 
   getUserName() {
@@ -126,7 +131,7 @@ class App extends React.Component {
     return false;
   }
 
-  handleChange(e) {
+  handleMessageChange(e) {
     e.preventDefault();
 
     this.setState({messageFormValue: e.target.value});
@@ -153,6 +158,14 @@ class App extends React.Component {
     }
   }
 
+  // Message delete Handler
+  onMessageDelete(e) {
+    e.preventDefault();
+
+    // Check that the User is signed in and their ID matches the selected message ID
+  }
+
+
   // Sends a message to the Firestore Database
   async saveMessage(messageText, serverId, channelIndex) {
     try {
@@ -168,7 +181,7 @@ class App extends React.Component {
     }
   }
 
-  displayMessage(id, timestamp, name, text) {
+  displayMessage(uid, timestamp, name, text) {
     // TODO: Update state with new message
     let messages = this.state.messages;
     messages.push({
@@ -199,7 +212,7 @@ class App extends React.Component {
                           this.deleteMessage(change.doc.id);
                         } else {
                           let message = change.doc.data();
-                          this.displayMessage(change.doc.id, message.timestamp, message.name, message.text);
+                          this.displayMessage(message.uid, message.timestamp, message.name, message.text);
                         }
                       });
                     })
@@ -242,8 +255,7 @@ class App extends React.Component {
     this.setState({
       userNameElement: document.getElementById('user-name'),
       signInButtonElement: document.getElementById('sign-in'),
-      signOutButtonElement: document.getElementById('sign-out'),
-      submitButtonElement: document.getElementById('submit')
+      signOutButtonElement: document.getElementById('sign-out')
     });
 
     // Init Firebase
@@ -269,6 +281,13 @@ class App extends React.Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
+
+    if (!this.state.submitButtonElement && this.state.serverId) {
+      this.setState({
+        submitButtonElement: document.getElementById('submit') || ''
+      });
+    }
+
     if (prevState.serverId !== this.state.serverId) {
       this.loadMessages(this.state.serverId, 0);
     }
@@ -310,19 +329,28 @@ class App extends React.Component {
                         <div>userName: {message.userName}</div>
                         <div>messageText: {message.text}</div>
                         <div>{message.timestamp ? message.timestamp.toDate().toString() : ''}</div>
+                        <button onClick={this.onMessageDelete}>Delete Message</button>
                       </li>
                     );
                   })
                 }
               </ul>
 
-              <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
-                <div>
-                  <label><i>Type message here...</i></label>
-                  <input type='text' id='message' autoComplete='off' value={this.state.messageFormValue} onChange={this.handleChange}/>
-                  <button id='submit' disabled type='submit'>Send</button>
-                </div>
-              </form>
+              {
+                this.state.serverId ?
+
+                <form id='message-form' action='#' onSubmit={this.onMessageFormSubmit}>
+                  <div>
+                    <label><i>Type message here...</i></label>
+                    <input type='text' id='message' autoComplete='off' value={this.state.messageFormValue} onChange={this.handleMessageChange}/>
+                    <button id='submit' disabled type='submit'>Send</button>
+                  </div>
+                </form> :
+                <span/>
+
+              }
+
+              
             </main>
 
           </div>

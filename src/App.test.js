@@ -6,11 +6,11 @@ import App from './App';
 // });
 
 // test('User can visit different channels in a server (GET /servers/:id/channel/:index)', () => {
-//   render(<App />);
+
 // });
 
 // test('User can post messages in a server channel (PUT /servers/:id/channel/:index/messages/:id)', () => {
-//   render(<App />);
+  
 // });
 
 // test('User can edit their own messages (POST /servers/:id/channel/:index/messages/:id)', () => {
