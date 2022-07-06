@@ -36,7 +36,7 @@ class App extends React.Component {
       messages: [],
       serverId: '',
       serverIndex: '',
-      channel: 0,
+      channel: '0',
       requestNewSnapshot: false,
       unsubscribe: null,
       servers: []
@@ -108,14 +108,13 @@ class App extends React.Component {
     e.preventDefault();
     this.setState({
       serverId: e.target.dataset.id,
-      channel: 0,
+      channel: '0',
       serverIndex: e.target.dataset.index
     });
   }
 
   channelNavHandler(e) {
     e.preventDefault();
-
     this.setState({
       channel: e.target.dataset.channel
     });
@@ -289,7 +288,7 @@ class App extends React.Component {
     }
 
     if (prevState.serverId !== this.state.serverId) {
-      this.loadMessages(this.state.serverId, 0);
+      this.loadMessages(this.state.serverId, '0');
     }
 
     if (prevState.channel !== this.state.channel) {
